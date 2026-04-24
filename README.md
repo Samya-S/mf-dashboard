@@ -9,6 +9,7 @@ This app integrates all major MFAPI endpoints and provides:
 - searchable mutual fund schemes
 - top scheme listing with pagination parameters
 - latest NAV snapshot
+- latest NAV date shown alongside the Latest NAV stat label
 - historical NAV trend chart with date presets
 - quick performance stats (absolute and percentage change)
 
@@ -45,13 +46,10 @@ This behavior is implemented in `lib/client-cache.ts` and used by `hooks/use-mf-
 - `app/page.tsx` - page composition
 - `hooks/use-mf-dashboard.ts` - dashboard state + data fetching
 - `components/dashboard/*` - UI subcomponents
+- `lib/dashboard-utils.ts` - date/range/formatting helpers
+- `lib/client-cache.ts` - client cache + in-flight request deduping
 - `lib/mfapi.ts` - typed MFAPI service helpers
 - `app/api/mf/*` - internal API route handlers
-
-## Credits
-
-- Data powered by [MFAPI](https://www.mfapi.in/docs/)
-- Made with ❤️ from [Samya](https://samyasaha.vercel.app/)
 
 ## Local Development
 
