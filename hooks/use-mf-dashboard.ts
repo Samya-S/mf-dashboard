@@ -15,7 +15,7 @@ export function useMfDashboard() {
   const [list, setList] = useState<SchemeListItem[]>([]);
   const [searchResults, setSearchResults] = useState<SchemeListItem[]>([]);
   const [query, setQuery] = useState("");
-  const [selectedCode, setSelectedCode] = useState<string>("");
+  const [selectedCode, setSelectedCode] = useState<string>("149039");
   const [selectedPreset, setSelectedPreset] = useState<DatePreset>("1Y");
   const [history, setHistory] = useState<SchemeHistoryResponse | null>(null);
   const [latest, setLatest] = useState<SchemeHistoryResponse | null>(null);
@@ -133,6 +133,7 @@ export function useMfDashboard() {
 
   const shownSchemes = query.trim() ? searchResults : list;
   const selectedScheme = history?.meta ?? latest?.meta;
+  const latestNavDate = latest?.data?.[0]?.date;
 
   return {
     list,
@@ -147,6 +148,7 @@ export function useMfDashboard() {
     error,
     chartData,
     stats,
+    latestNavDate,
     shownSchemes,
     selectedScheme,
     setQuery,

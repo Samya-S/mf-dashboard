@@ -15,6 +15,7 @@ export default function Home() {
     error,
     chartData,
     stats,
+    latestNavDate,
     shownSchemes,
     selectedScheme,
     setQuery,
@@ -55,6 +56,7 @@ export default function Home() {
               selectedScheme={selectedScheme}
               selectedPreset={selectedPreset}
               stats={stats}
+              latestNavDate={latestNavDate}
               onPresetChange={setSelectedPreset}
             />
             <NavTrendChart loadingHistory={loadingHistory} chartData={chartData} />

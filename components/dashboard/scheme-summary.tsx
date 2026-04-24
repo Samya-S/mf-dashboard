@@ -8,6 +8,7 @@ type SchemeSummaryProps = {
   selectedScheme?: SchemeMeta;
   selectedPreset: DatePreset;
   stats: DashboardStats | null;
+  latestNavDate?: string;
   onPresetChange: (preset: DatePreset) => void;
 };
 
@@ -15,6 +16,7 @@ function SchemeSummaryComponent({
   selectedScheme,
   selectedPreset,
   stats,
+  latestNavDate,
   onPresetChange,
 }: SchemeSummaryProps) {
   return (
@@ -49,6 +51,7 @@ function SchemeSummaryComponent({
         <StatCard
           label="Latest NAV"
           value={stats ? formatCurrency(stats.latestNav) : "-"}
+          meta={latestNavDate ?? "-"}
         />
         <StatCard
           label="Period Change"
