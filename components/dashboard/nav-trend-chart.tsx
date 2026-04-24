@@ -17,6 +17,8 @@ type NavTrendChartProps = {
   chartData: ChartPoint[];
 };
 
+const formatNavTick = (value: number) => `₹${value.toFixed(0)}`;
+
 function NavTrendChartComponent({ loadingHistory, chartData }: NavTrendChartProps) {
   const chartHostRef = useRef<HTMLDivElement | null>(null);
   const [hasValidSize, setHasValidSize] = useState(false);
@@ -58,6 +60,37 @@ function NavTrendChartComponent({ loadingHistory, chartData }: NavTrendChartProp
     return [minNav - padding, maxNav + padding];
   }, [chartData]);
 
+  const yAxisWidth = useMemo(() => {
+    const [minValue, maxValue] = yAxisDomain;
+    const range = maxValue - minValue;
+    const sampledValues = [
+      minValue,
+      minValue + range * 0.25,
+      minValue + range * 0.5,
+      minValue + range * 0.75,
+      maxValue,
+    ];
+    const labels = sampledValues.map((value) => formatNavTick(value));
+
+    if (typeof document === "undefined") {
+      const longestFallbackLabelLength = Math.max(...labels.map((label) => label.length), 0);
+      return Math.max(32, Math.ceil(longestFallbackLabelLength * 8 + 10));
+    }
+
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+    if (!context) return 40;
+
+    context.font = "12px sans-serif";
+    const widestLabel = Math.max(
+      ...labels.map((label) => context.measureText(label).width),
+      0,
+    );
+
+    // Include small extra spacing for axis tick line and breathing room.
+    return Math.max(32, Math.ceil(widestLabel + 10));
+  }, [yAxisDomain]);
+
   return (
     <div className="min-w-0 rounded-xl border border-slate-800 bg-slate-900 p-4">
       <h3 className="mb-3 text-sm font-semibold text-slate-200">NAV Trend</h3>
@@ -86,9 +119,9 @@ function NavTrendChartComponent({ loadingHistory, chartData }: NavTrendChartProp
               />
               <YAxis
                 stroke="#cbd5e1"
-                width={25}
+                width={yAxisWidth}
                 domain={yAxisDomain}
-                tickFormatter={(value) => `₹${value.toFixed(0)}`}
+                tickFormatter={formatNavTick}
                 tick={{ fontSize: 12 }}
               />
               <Tooltip
