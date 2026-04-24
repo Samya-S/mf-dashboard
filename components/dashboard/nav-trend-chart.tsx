@@ -64,8 +64,8 @@ function NavTrendChartComponent({ loadingHistory, chartData }: NavTrendChartProp
               />
               <YAxis
                 stroke="#cbd5e1"
-                width={95}
-                tickFormatter={(value) => `Rs ${value.toFixed(0)}`}
+                width={25}
+                tickFormatter={(value) => `₹${value.toFixed(0)}`}
                 tick={{ fontSize: 12 }}
               />
               <Tooltip
