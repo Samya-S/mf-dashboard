@@ -11,9 +11,55 @@ const SEARCH_TTL_MS = 10 * 60 * 1000;
 const HISTORY_TTL_MS = 30 * 60 * 1000;
 const LATEST_TTL_MS = 5 * 60 * 1000;
 
+type BookmarkedScheme = {
+  schemeCode: string;
+  schemeName: string;
+};
+
 export function useMfDashboard() {
   const [list, setList] = useState<SchemeListItem[]>([]);
   const [searchResults, setSearchResults] = useState<SchemeListItem[]>([]);
+  const [bookmarkedSchemes, setBookmarkedSchemes] = useState<BookmarkedScheme[]>(
+    () => {
+    if (typeof window === "undefined") return [];
+
+    try {
+      const stored = window.localStorage.getItem("mf-dashboard:bookmarks");
+      if (!stored) return [];
+      const parsed = JSON.parse(stored);
+      if (!Array.isArray(parsed)) return [];
+
+      return parsed
+        .map((value): BookmarkedScheme | null => {
+          if (typeof value === "string" || typeof value === "number") {
+            const schemeCode = String(value).trim();
+            if (!schemeCode) return null;
+            return {
+              schemeCode,
+              schemeName: `Bookmarked fund (${schemeCode})`,
+            };
+          }
+
+          if (!value || typeof value !== "object") return null;
+
+          const maybeCode = "schemeCode" in value ? String(value.schemeCode).trim() : "";
+          if (!maybeCode) return null;
+
+          const maybeName =
+            "schemeName" in value && typeof value.schemeName === "string"
+              ? value.schemeName.trim()
+              : "";
+
+          return {
+            schemeCode: maybeCode,
+            schemeName: maybeName || `Bookmarked fund (${maybeCode})`,
+          };
+        })
+        .filter((value): value is BookmarkedScheme => value !== null);
+    } catch {
+      return [];
+    }
+  });
   const [query, setQuery] = useState("");
   const [selectedCode, setSelectedCode] = useState<string>("149039");
   const [selectedPreset, setSelectedPreset] = useState<DatePreset>("1Y");
@@ -55,6 +101,13 @@ export function useMfDashboard() {
       mounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(
+      "mf-dashboard:bookmarks",
+      JSON.stringify(bookmarkedSchemes),
+    );
+  }, [bookmarkedSchemes]);
 
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -131,9 +184,55 @@ export function useMfDashboard() {
     return toStats(chartData, latest?.data?.[0]?.nav);
   }, [chartData, latest]);
 
-  const shownSchemes = query.trim() ? searchResults : list;
+  const shownSchemes = useMemo(() => {
+    const sourceSchemes = query.trim() ? searchResults : list;
+    if (bookmarkedSchemes.length === 0) return sourceSchemes;
+
+    const bookmarkedSet = new Set(bookmarkedSchemes.map((item) => item.schemeCode));
+    const persistedBookmarkItems: SchemeListItem[] = bookmarkedSchemes.map((item) => ({
+      schemeCode: Number(item.schemeCode),
+      schemeName: item.schemeName,
+    }));
+    const sortedSource = [...sourceSchemes].sort((left, right) => {
+      const leftScore = bookmarkedSet.has(String(left.schemeCode)) ? 1 : 0;
+      const rightScore = bookmarkedSet.has(String(right.schemeCode)) ? 1 : 0;
+      return rightScore - leftScore;
+    });
+    const merged = [...persistedBookmarkItems, ...sortedSource];
+    const seen = new Set<string>();
+
+    return merged.filter((scheme) => {
+      const key = String(scheme.schemeCode);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [query, searchResults, list, bookmarkedSchemes]);
   const selectedScheme = history?.meta ?? latest?.meta;
   const latestNavDate = latest?.data?.[0]?.date;
+  const bookmarkedCodes = useMemo(
+    () => bookmarkedSchemes.map((item) => item.schemeCode),
+    [bookmarkedSchemes],
+  );
+  const toggleBookmark = (schemeCode: string, schemeName?: string) => {
+    setBookmarkedSchemes((current) => {
+      if (current.some((item) => item.schemeCode === schemeCode)) {
+        return current.filter((item) => item.schemeCode !== schemeCode);
+      }
+
+      const fallbackNameFromLoadedData =
+        list.find((scheme) => String(scheme.schemeCode) === schemeCode)?.schemeName ??
+        searchResults.find((scheme) => String(scheme.schemeCode) === schemeCode)
+          ?.schemeName;
+
+      const resolvedName =
+        schemeName?.trim() ||
+        fallbackNameFromLoadedData ||
+        `Bookmarked fund (${schemeCode})`;
+
+      return [...current, { schemeCode, schemeName: resolvedName }];
+    });
+  };
 
   return {
     list,
@@ -151,8 +250,10 @@ export function useMfDashboard() {
     latestNavDate,
     shownSchemes,
     selectedScheme,
+    bookmarkedCodes,
     setQuery,
     setSelectedCode,
     setSelectedPreset,
+    toggleBookmark,
   };
 }

@@ -9,7 +9,9 @@ type SchemeSummaryProps = {
   selectedPreset: DatePreset;
   stats: DashboardStats | null;
   latestNavDate?: string;
+  isBookmarked: boolean;
   onPresetChange: (preset: DatePreset) => void;
+  onToggleBookmark: () => void;
 };
 
 function SchemeSummaryComponent({
@@ -17,18 +19,45 @@ function SchemeSummaryComponent({
   selectedPreset,
   stats,
   latestNavDate,
+  isBookmarked,
   onPresetChange,
+  onToggleBookmark,
 }: SchemeSummaryProps) {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-lg font-semibold">
-            {selectedScheme?.scheme_name ?? "Select a scheme"}
-          </h2>
-          <p className="text-xs text-slate-400">
-            {selectedScheme?.fund_house} | {selectedScheme?.scheme_category}
-          </p>
+        <div className="flex items-start gap-2">
+          <div>
+            <h2 className="text-lg font-semibold">
+              {selectedScheme?.scheme_name ?? "Select a scheme"}
+            </h2>
+            <p className="text-xs text-slate-400">
+              {selectedScheme?.fund_house} | {selectedScheme?.scheme_category}
+            </p>
+          </div>
+          <button
+            onClick={onToggleBookmark}
+            disabled={!selectedScheme}
+            aria-label={isBookmarked ? "Remove bookmark" : "Add bookmark"}
+            title={isBookmarked ? "Remove bookmark" : "Add bookmark"}
+            className={`rounded-md border p-1.5 transition ${
+              isBookmarked
+                ? "border-indigo-400 bg-indigo-500/20 text-indigo-100"
+                : "border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800"
+            } disabled:cursor-not-allowed disabled:opacity-50`}
+          >
+            <svg
+              viewBox="0 0 24 24"
+              className="h-4 w-4"
+              fill={isBookmarked ? "currentColor" : "none"}
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z" />
+            </svg>
+          </button>
         </div>
         <div className="flex gap-2">
           {DATE_PRESETS.map((preset) => (

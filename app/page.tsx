@@ -18,9 +18,11 @@ export default function Home() {
     latestNavDate,
     shownSchemes,
     selectedScheme,
+    bookmarkedCodes,
     setQuery,
     setSelectedCode,
     setSelectedPreset,
+    toggleBookmark,
   } = useMfDashboard();
 
   return (
@@ -46,6 +48,7 @@ export default function Home() {
             query={query}
             loadingList={loadingList}
             shownSchemes={shownSchemes}
+            bookmarkedCodes={bookmarkedCodes}
             selectedCode={selectedCode}
             onQueryChange={setQuery}
             onSelectScheme={setSelectedCode}
@@ -57,7 +60,11 @@ export default function Home() {
               selectedPreset={selectedPreset}
               stats={stats}
               latestNavDate={latestNavDate}
+              isBookmarked={bookmarkedCodes.includes(selectedCode)}
               onPresetChange={setSelectedPreset}
+              onToggleBookmark={() =>
+                toggleBookmark(selectedCode, selectedScheme?.scheme_name)
+              }
             />
             <NavTrendChart loadingHistory={loadingHistory} chartData={chartData} />
           </section>
