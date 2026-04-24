@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   CartesianGrid,
   Line,
@@ -36,6 +36,28 @@ function NavTrendChartComponent({ loadingHistory, chartData }: NavTrendChartProp
     return () => observer.disconnect();
   }, []);
 
+  const yAxisDomain = useMemo<[number, number]>(() => {
+    if (chartData.length === 0) return [0, 1];
+
+    const navValues = chartData
+      .map((point) => point.nav)
+      .filter((value) => Number.isFinite(value));
+
+    if (navValues.length === 0) return [0, 1];
+
+    const minNav = Math.min(...navValues);
+    const maxNav = Math.max(...navValues);
+
+    if (minNav === maxNav) {
+      const flatPadding = Math.max(Math.abs(minNav) * 0.01, 1);
+      return [minNav - flatPadding, maxNav + flatPadding];
+    }
+
+    const range = maxNav - minNav;
+    const padding = Math.max(range * 0.08, 0.5);
+    return [minNav - padding, maxNav + padding];
+  }, [chartData]);
+
   return (
     <div className="min-w-0 rounded-xl border border-slate-800 bg-slate-900 p-4">
       <h3 className="mb-3 text-sm font-semibold text-slate-200">NAV Trend</h3>
@@ -65,6 +87,7 @@ function NavTrendChartComponent({ loadingHistory, chartData }: NavTrendChartProp
               <YAxis
                 stroke="#cbd5e1"
                 width={25}
+                domain={yAxisDomain}
                 tickFormatter={(value) => `₹${value.toFixed(0)}`}
                 tick={{ fontSize: 12 }}
               />
