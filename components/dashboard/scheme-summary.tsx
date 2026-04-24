@@ -23,6 +23,17 @@ function SchemeSummaryComponent({
   onPresetChange,
   onToggleBookmark,
 }: SchemeSummaryProps) {
+  const periodChangeValueClassName = !stats
+    ? undefined
+    : stats.periodChange >= 0
+      ? "text-emerald-400"
+      : "text-red-400";
+  const returnPctValueClassName = !stats
+    ? undefined
+    : stats.periodChangePct >= 0
+      ? "text-emerald-400"
+      : "text-red-400";
+
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -89,6 +100,7 @@ function SchemeSummaryComponent({
               ? `${stats.periodChange >= 0 ? "+" : ""}${formatCurrency(stats.periodChange)}`
               : "-"
           }
+          valueClassName={periodChangeValueClassName}
         />
         <StatCard
           label="Return %"
@@ -97,6 +109,7 @@ function SchemeSummaryComponent({
               ? `${stats.periodChangePct >= 0 ? "+" : ""}${stats.periodChangePct.toFixed(2)}%`
               : "-"
           }
+          valueClassName={returnPctValueClassName}
         />
       </div>
     </div>
