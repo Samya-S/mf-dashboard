@@ -1,36 +1,77 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MFAPI Mutual Fund Dashboard
 
-## Getting Started
+A Next.js dashboard for exploring Indian mutual fund schemes and NAV trends using MFAPI.
 
-First, run the development server:
+## Overview
+
+This app integrates all major MFAPI endpoints and provides:
+
+- searchable mutual fund schemes
+- top scheme listing with pagination parameters
+- latest NAV snapshot
+- historical NAV trend chart with date presets
+- quick performance stats (absolute and percentage change)
+
+Reference API documentation: [MFAPI Docs](https://www.mfapi.in/docs/)
+
+## Tech Stack
+
+- Next.js App Router + TypeScript
+- Tailwind CSS
+- Recharts for NAV graph visualization
+
+## API Endpoints Used
+
+The app proxies external API calls through internal routes:
+
+- `GET /api/mf/list` -> MFAPI `GET /mf`
+- `GET /api/mf/search` -> MFAPI `GET /mf/search?q=...`
+- `GET /api/mf/[schemeCode]` -> MFAPI `GET /mf/{scheme_code}`
+- `GET /api/mf/[schemeCode]/latest` -> MFAPI `GET /mf/{scheme_code}/latest`
+
+## Rate Limiting and Caching
+
+MFAPI has rate limiting guidance. To reduce repeated requests, the frontend uses an in-memory cache with request deduplication:
+
+- list cache TTL: `60m`
+- search cache TTL: `10m`
+- history cache TTL: `30m`
+- latest NAV cache TTL: `5m`
+
+This behavior is implemented in `lib/client-cache.ts` and used by `hooks/use-mf-dashboard.ts`.
+
+## Project Structure
+
+- `app/page.tsx` - page composition
+- `hooks/use-mf-dashboard.ts` - dashboard state + data fetching
+- `components/dashboard/*` - UI subcomponents
+- `lib/mfapi.ts` - typed MFAPI service helpers
+- `app/api/mf/*` - internal API route handlers
+
+## Credits
+
+- Data powered by [MFAPI](https://www.mfapi.in/docs/)
+- Made with ❤️ from [Samya](https://samyasaha.vercel.app/)
+
+## Local Development
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Run dev server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Validation
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run lint
+npm run build
+```
