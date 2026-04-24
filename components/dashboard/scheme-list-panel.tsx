@@ -30,7 +30,7 @@ function SchemeListPanelComponent({
       <p className="mb-2 text-xs text-slate-400">
         {query ? "Search results" : "Top 100 schemes"}
       </p>
-      <div className="custom-scrollbar max-h-[65vh] space-y-2 overflow-auto pr-2">
+      <div className="custom-scrollbar max-h-[42vh] space-y-2 overflow-auto pr-2 sm:max-h-[55vh] lg:max-h-[65vh]">
         {loadingList ? (
           <p className="text-sm text-slate-400">Loading schemes...</p>
         ) : (
