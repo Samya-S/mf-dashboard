@@ -91,6 +91,16 @@ export default function Home() {
           >
             Samya
           </a>
+          <br />
+          Source code:{" "}
+          <a
+            href="https://github.com/Samya-S/mf-dashboard"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-slate-200 hover:text-indigo-300"
+          >
+            GitHub
+          </a>
         </footer>
       </div>
     </main>
