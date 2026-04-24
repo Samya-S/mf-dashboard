@@ -56,7 +56,7 @@ const getJson = async <T>(url: string): Promise<T> => {
 
 export const listSchemes = async (
   limit = 100,
-  offset = 0,
+  offset = 6,
 ): Promise<SchemeListItem[]> => {
   const url = withQuery(`${MF_API_BASE}/mf`, { limit, offset });
   return getJson<SchemeListItem[]>(url);

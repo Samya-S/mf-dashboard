@@ -5,7 +5,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const limit = Number(searchParams.get("limit") ?? "100");
-    const offset = Number(searchParams.get("offset") ?? "0");
+    const offset = Number(searchParams.get("offset") ?? "6");
 
     const data = await listSchemes(limit, offset);
     return NextResponse.json(data);

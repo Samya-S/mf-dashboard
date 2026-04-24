@@ -77,8 +77,8 @@ export function useMfDashboard() {
         setLoadingList(true);
 
         const data = await fetchJsonWithCache<SchemeListItem[]>(
-          "list:limit=100:offset=0",
-          "/api/mf/list?limit=100&offset=0",
+          "list:limit=100:offset=6",
+          "/api/mf/list?limit=100&offset=6",
           LIST_TTL_MS,
         );
 
