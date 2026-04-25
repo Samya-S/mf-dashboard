@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { DatePreset } from "@/lib/dashboard-types";
 import { fetchJsonWithCache } from "@/lib/client-cache";
 import { getDateRange, toChartData, toStats } from "@/lib/dashboard-utils";
@@ -16,50 +16,16 @@ type BookmarkedScheme = {
   schemeName: string;
 };
 
+const normalizeSchemeCode = (value: string | number | null | undefined): string => {
+  if (value === null || value === undefined) return "";
+  return String(value).trim();
+};
+
 export function useMfDashboard() {
   const [list, setList] = useState<SchemeListItem[]>([]);
   const [searchResults, setSearchResults] = useState<SchemeListItem[]>([]);
-  const [bookmarkedSchemes, setBookmarkedSchemes] = useState<BookmarkedScheme[]>(
-    () => {
-    if (typeof window === "undefined") return [];
-
-    try {
-      const stored = window.localStorage.getItem("mf-dashboard:bookmarks");
-      if (!stored) return [];
-      const parsed = JSON.parse(stored);
-      if (!Array.isArray(parsed)) return [];
-
-      return parsed
-        .map((value): BookmarkedScheme | null => {
-          if (typeof value === "string" || typeof value === "number") {
-            const schemeCode = String(value).trim();
-            if (!schemeCode) return null;
-            return {
-              schemeCode,
-              schemeName: `Bookmarked fund (${schemeCode})`,
-            };
-          }
-
-          if (!value || typeof value !== "object") return null;
-
-          const maybeCode = "schemeCode" in value ? String(value.schemeCode).trim() : "";
-          if (!maybeCode) return null;
-
-          const maybeName =
-            "schemeName" in value && typeof value.schemeName === "string"
-              ? value.schemeName.trim()
-              : "";
-
-          return {
-            schemeCode: maybeCode,
-            schemeName: maybeName || `Bookmarked fund (${maybeCode})`,
-          };
-        })
-        .filter((value): value is BookmarkedScheme => value !== null);
-    } catch {
-      return [];
-    }
-  });
+  const [bookmarkedSchemes, setBookmarkedSchemes] = useState<BookmarkedScheme[]>([]);
+  const bookmarksHydratedRef = useRef(false);
   const [query, setQuery] = useState("");
   const [selectedCode, setSelectedCode] = useState<string>("149039");
   const [selectedPreset, setSelectedPreset] = useState<DatePreset>("1Y");
@@ -103,6 +69,73 @@ export function useMfDashboard() {
   }, []);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    let active = true;
+
+    try {
+      const stored = window.localStorage.getItem("mf-dashboard:bookmarks");
+      if (!stored) {
+        bookmarksHydratedRef.current = true;
+        return;
+      }
+
+      const parsed = JSON.parse(stored);
+      if (!Array.isArray(parsed)) {
+        bookmarksHydratedRef.current = true;
+        return;
+      }
+
+      const normalizedBookmarks = parsed
+        .map((value): BookmarkedScheme | null => {
+          if (typeof value === "string" || typeof value === "number") {
+            const schemeCode = normalizeSchemeCode(value);
+            if (!schemeCode) return null;
+            return {
+              schemeCode,
+              schemeName: `Bookmarked fund (${schemeCode})`,
+            };
+          }
+
+          if (!value || typeof value !== "object") return null;
+
+          const maybeCode =
+            "schemeCode" in value ? normalizeSchemeCode(value.schemeCode) : "";
+          if (!maybeCode) return null;
+
+          const maybeName =
+            "schemeName" in value && typeof value.schemeName === "string"
+              ? value.schemeName.trim()
+              : "";
+
+          return {
+            schemeCode: maybeCode,
+            schemeName: maybeName || `Bookmarked fund (${maybeCode})`,
+          };
+        })
+        .filter((value): value is BookmarkedScheme => value !== null);
+
+      queueMicrotask(() => {
+        if (!active) return;
+        setBookmarkedSchemes(normalizedBookmarks);
+        setSelectedCode((current) =>
+          current === "149039" && normalizedBookmarks.length > 0
+            ? normalizedBookmarks[0].schemeCode
+            : current,
+        );
+      });
+    } catch {
+      // Ignore invalid local storage payloads and fall back to defaults.
+    } finally {
+      bookmarksHydratedRef.current = true;
+    }
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!bookmarksHydratedRef.current) return;
     window.localStorage.setItem(
       "mf-dashboard:bookmarks",
       JSON.stringify(bookmarkedSchemes),
@@ -215,22 +248,25 @@ export function useMfDashboard() {
     [bookmarkedSchemes],
   );
   const toggleBookmark = (schemeCode: string, schemeName?: string) => {
+    const normalizedCode = normalizeSchemeCode(schemeCode);
+    if (!normalizedCode) return;
+
     setBookmarkedSchemes((current) => {
-      if (current.some((item) => item.schemeCode === schemeCode)) {
-        return current.filter((item) => item.schemeCode !== schemeCode);
+      if (current.some((item) => item.schemeCode === normalizedCode)) {
+        return current.filter((item) => item.schemeCode !== normalizedCode);
       }
 
       const fallbackNameFromLoadedData =
-        list.find((scheme) => String(scheme.schemeCode) === schemeCode)?.schemeName ??
-        searchResults.find((scheme) => String(scheme.schemeCode) === schemeCode)
+        list.find((scheme) => String(scheme.schemeCode) === normalizedCode)?.schemeName ??
+        searchResults.find((scheme) => String(scheme.schemeCode) === normalizedCode)
           ?.schemeName;
 
       const resolvedName =
         schemeName?.trim() ||
         fallbackNameFromLoadedData ||
-        `Bookmarked fund (${schemeCode})`;
+        `Bookmarked fund (${normalizedCode})`;
 
-      return [...current, { schemeCode, schemeName: resolvedName }];
+      return [...current, { schemeCode: normalizedCode, schemeName: resolvedName }];
     });
   };
 

@@ -24,6 +24,8 @@ export default function Home() {
     setSelectedPreset,
     toggleBookmark,
   } = useMfDashboard();
+  const activeSchemeCode = String(selectedScheme?.scheme_code ?? selectedCode);
+  const isActiveSchemeBookmarked = bookmarkedCodes.includes(activeSchemeCode);
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100">
@@ -60,10 +62,10 @@ export default function Home() {
               selectedPreset={selectedPreset}
               stats={stats}
               latestNavDate={latestNavDate}
-              isBookmarked={bookmarkedCodes.includes(selectedCode)}
+              isBookmarked={isActiveSchemeBookmarked}
               onPresetChange={setSelectedPreset}
               onToggleBookmark={() =>
-                toggleBookmark(selectedCode, selectedScheme?.scheme_name)
+                toggleBookmark(activeSchemeCode, selectedScheme?.scheme_name)
               }
             />
             <NavTrendChart loadingHistory={loadingHistory} chartData={chartData} />

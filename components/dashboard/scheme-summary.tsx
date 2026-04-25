@@ -55,7 +55,7 @@ function SchemeSummaryComponent({
               isBookmarked
                 ? "border-indigo-400 bg-indigo-500/20 text-indigo-100"
                 : "border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800"
-            } disabled:cursor-not-allowed disabled:opacity-50`}
+            } cursor-pointer disabled:cursor-not-allowed disabled:opacity-50`}
           >
             <svg
               viewBox="0 0 24 24"

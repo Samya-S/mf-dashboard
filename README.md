@@ -7,7 +7,7 @@ A Next.js dashboard for exploring Indian mutual fund schemes and NAV trends usin
 This app integrates all major MFAPI endpoints and provides:
 
 - searchable mutual fund schemes
-- top scheme listing (currently first 100 via `limit=100&offset=0`)
+- top scheme listing (currently first 100 via `limit=100&offset=6`)
 - latest NAV snapshot
 - latest NAV date shown alongside the Latest NAV stat label
 - historical NAV trend chart with date presets
